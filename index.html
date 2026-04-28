@@ -928,6 +928,7 @@ function parseAmfiDate(s) {
   if (!m) return null;
   const months = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
   const mo = months[m[2].slice(0,1).toUpperCase()+m[2].slice(1,3).toLowerCase()];
+  if (typeof mo !== 'number') return null;
   return new Date(Number(m[3]), mo, Number(m[1]));
 }
 
@@ -1040,7 +1041,10 @@ function onDataLoaded(text) {
   $('portfolio-section').style.display = '';
   $('search').disabled = false;
   $('stat-schemes').textContent = allFunds.length.toLocaleString('en-IN');
-  $('stat-navdate').innerHTML = `${currentDate.split('-').slice(0,2).join(' ')}<span class="small"> · ${currentDate.split('-')[2]}</span>`;
+  const dateBits = currentDate.split('-');
+  $('stat-navdate').innerHTML = dateBits.length === 3
+    ? `${dateBits[0]} ${dateBits[1]}<span class="small"> · ${dateBits[2]}</span>`
+    : currentDate;
 
   const feed = $('stat-feed');
   feed.classList.add('live');
