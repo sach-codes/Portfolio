@@ -54,7 +54,27 @@ Your tracker will be live at `https://<your-username>.github.io/nav-ledger/`.
 
 ### 3. Host elsewhere
 
-Works as-is on Netlify, Vercel, Cloudflare Pages, S3, or any static host. No build, no env vars.
+Works as-is on Netlify, Vercel, Cloudflare Pages, S3, Railway, or any static host. No build, no env vars.
+
+
+### 4. Deploy on Railway
+
+This repo is now configured for Railway using a Dockerized NGINX static server:
+
+```bash
+# from repo root
+git push origin main
+```
+
+Then on Railway:
+
+1. **New Project → Deploy from GitHub repo**
+2. Select this repository
+3. Railway auto-detects `Dockerfile` and builds the image
+4. Health check uses `/health`
+
+No environment variables are required.
+
 
 ---
 
