@@ -72,8 +72,16 @@ Then on Railway:
 2. Select this repository
 3. Railway auto-detects `Dockerfile` and builds the image
 4. Health check uses `/health`
+5. After first successful deploy, go to **Networking → Public Networking** and set target port to `${{PORT}}` (or `8080` if prompted for a fixed value), then click **Generate Domain**
 
 No environment variables are required.
+
+#### If "Generate Domain" stays disabled
+
+- Wait until deployment status is **Success** (not failed or still building).
+- Open the deploy logs and confirm NGINX is listening on Railway's runtime `PORT`.
+- In **Settings → Healthcheck Path**, keep it as `/health`.
+- Redeploy once after any port/config changes.
 
 
 ---
