@@ -1,50 +1,114 @@
-# MF Portfolio Tracker
+# NAV Ledger
 
-A clean, zero-dependency frontend tool to track your Mutual Fund portfolio value using **live NAV data from AMFI India**.
+A clean, single-page mutual-fund portfolio tracker that reads **live NAV data from AMFI India** and shows you your total portfolio value as you enter units held.
+
+> No backend. No accounts. No tracking. Holdings live only in your browser.
+
+![NAV Ledger screenshot — placeholder; replace with your own.](https://via.placeholder.com/1200x700.png?text=NAV+Ledger)
+
+---
 
 ## Features
 
-- 📡 **Live NAV data** — fetches directly from AMFI's public NAV feed (updated daily)
-- 🔍 **Smart search** — search by fund name, AMC, or scheme code across 15,000+ schemes
-- 📊 **Portfolio calculator** — enter units held, get instant value per fund and total
-- 📱 **Responsive** — works on desktop and mobile
-- ⚡ **Zero dependencies** — pure HTML, CSS, and vanilla JS; no build step needed
+- 🔍 **Search 12,000+ schemes** from the official AMFI registry — by name, AMC, or scheme code
+- 📒 **Add funds, enter units, see value** — instant calculation, sorted by value
+- 💾 **Persistent across sessions** — holdings saved in browser localStorage
+- 📊 **Direct vs Regular plan tags**, **stale-NAV warning** (>7 days old)
+- 📱 **Responsive** — desktop table view collapses to mobile cards
+- 📤 **CSV export** of your folio for record-keeping
+- 🖨️ **Print-friendly** layout for a clean PDF
+- ⚡ **Zero build step** — single `index.html` file, drop on any static host
 
-## Usage
-
-### Option 1 — Open locally
-Just double-click `index.html` in your browser. Done.
-
-### Option 2 — GitHub Pages
-1. Fork or upload this repo to GitHub
-2. Go to **Settings → Pages → Source: main branch / root**
-3. Your tracker will be live at `https://<username>.github.io/<repo>/`
+---
 
 ## How it works
 
-1. On load, the app fetches `NAVAll.txt` from AMFI via a CORS proxy (`allorigins.win`)
-2. Parses ~15,000+ scheme records (semicolon-delimited)
-3. Search is done entirely client-side — fast, private, no backend
-4. Multiply units × NAV to compute holding value
+1. On load, the app fetches `NAVAll.txt` from `portal.amfiindia.com` via a public CORS proxy chain (corsproxy.io → allorigins → codetabs).
+2. The semicolon-delimited file is parsed in-browser into a flat list of schemes (code, ISIN, name, NAV, date).
+3. You search and select funds — your selections + units are saved in `localStorage` under the key `navledger.holdings.v1`.
+4. Total = Σ (NAV × units). Updates live as you type.
 
-## Data Source
+If all proxies fail (rare), the app falls back to letting you upload `NAVAll.txt` manually after downloading it from AMFI directly.
 
-NAV data: [AMFI India — NAVAll.txt](https://portal.amfiindia.com/spages/NAVAll.txt)  
-Updated every business day after market close.
+---
 
-## Limitations
+## Quick start
 
-- NAV is the **previous business day's closing NAV** (T-1), as published by AMFI
-- Intraday values are not available for mutual funds by regulation
-- This tool is for **personal tracking only** and does not constitute financial advice
+### 1. Use it now
 
-## File Structure
+Just open `index.html` in any modern browser. That's it.
+
+### 2. Host on GitHub Pages
+
+```bash
+git clone https://github.com/<your-username>/nav-ledger.git
+cd nav-ledger
+git add .
+git commit -m "Add NAV Ledger"
+git push
+```
+
+Then in your repo: **Settings → Pages → Deploy from branch → main → / (root)**.
+
+Your tracker will be live at `https://<your-username>.github.io/nav-ledger/`.
+
+### 3. Host elsewhere
+
+Works as-is on Netlify, Vercel, Cloudflare Pages, S3, or any static host. No build, no env vars.
+
+---
+
+## File structure
 
 ```
-index.html   ← everything (self-contained, single file)
-README.md    ← this file
+nav-ledger/
+├── index.html      ← the entire app (HTML + CSS + JS in one file)
+├── README.md       ← this file
+└── .nojekyll       ← prevents GitHub Pages from running Jekyll
 ```
+
+---
+
+## Customisation
+
+The whole thing is one file. A few easy tweaks:
+
+| Want to change… | Where |
+| --- | --- |
+| Color palette | CSS `:root` variables at the top of `<style>` |
+| Default sort order | `renderHoldings()` — currently sorts by value desc |
+| Stale-NAV threshold | `daysAgo(f.dateObj) > 7` — change `7` |
+| CSV columns | `$('export-csv').addEventListener` block |
+| Storage key (e.g. multi-folio) | `STORAGE_KEY` constant |
+
+---
+
+## Privacy & data
+
+- **Holdings data** is stored only in your browser via `localStorage`. It never leaves your device.
+- **NAV data** is fetched from AMFI India's public bulletin (via a third-party CORS proxy). The proxy sees only the AMFI URL — your holdings data is never sent to it.
+- This tool runs entirely client-side. There's no server, no analytics, no cookies.
+
+---
+
+## Caveats
+
+- NAV is **T-1**: the previous business day's closing NAV, as published by AMFI. Intraday MF prices don't exist by SEBI design.
+- The CORS proxies used (corsproxy.io, allorigins, codetabs) are free public services. If reliability matters, host your own proxy (a 5-line Cloudflare Worker is enough) and replace the `PROXIES` array.
+- Some old/discontinued schemes carry NAVs from years ago; the app shows a ⚠ stale tag for these.
+
+---
 
 ## License
 
-MIT — free to use, modify, and distribute.
+MIT. Use it, fork it, ship it.
+
+---
+
+## Credits
+
+- NAV data: [AMFI India](https://www.amfiindia.com/)
+- Type: [Newsreader](https://fonts.google.com/specimen/Newsreader) and [JetBrains Mono](https://www.jetbrains.com/lp/mono/)
+- Icons: Unicode glyphs only, no asset dependencies
+
+Built as a personal tool. **Not investment advice.**

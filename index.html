@@ -2,676 +2,1444 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MF Portfolio Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>NAV Ledger · Personal Mutual Fund Portfolio</title>
+  <meta name="description" content="A clean, personal mutual fund portfolio tracker powered by live NAV data from AMFI India." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E📒%3C/text%3E%3C/svg%3E">
+
   <style>
+    /* ─────────────────────────────────────────────────────
+       NAV LEDGER · A financial almanac aesthetic
+       ───────────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0f0e0b;
-      --paper: #f5f1ea;
-      --cream: #ede8df;
-      --accent: #c84b2f;
-      --accent-light: #e8cfc8;
-      --gold: #b38a2a;
-      --muted: #7a7469;
-      --border: #ccc5b8;
-      --green: #2a6e3f;
-      --green-bg: #e8f2ec;
+      /* Palette: warm parchment + deep ink + oxblood accent */
+      --paper: #f5efe2;
+      --paper-2: #ede5d2;
+      --surface: #fbf6ec;
+      --ink: #1f1b13;
+      --ink-soft: #3a342a;
+      --muted: #76705f;
+      --rule: #d4caa8;
+      --rule-soft: #e3d9bb;
+      --accent: #8c2f1d;       /* oxblood */
+      --accent-soft: #c25c44;
+      --gold: #a08137;
+      --good: #3d6b3a;
+      --warn: #a87526;
+      --danger: #8c2f1d;
+
+      --serif: 'Newsreader', 'Iowan Old Style', 'Palatino', Georgia, serif;
+      --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     }
 
+    html, body { background: var(--paper); color: var(--ink); }
     body {
-      font-family: 'DM Mono', monospace;
-      background: var(--paper);
-      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.55;
       min-height: 100vh;
       padding: 0;
       overflow-x: hidden;
+      font-feature-settings: 'tnum' 1, 'cv11' 1;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ─── HEADER ─── */
-    header {
-      background: var(--ink);
-      color: var(--paper);
-      padding: 2rem 3rem 1.5rem;
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
+    /* Subtle paper grain */
+    body::before {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(140,47,29,0.04), transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(160,129,55,0.05), transparent 40%);
+    }
+    body::after {
+      content: "";
+      position: fixed; inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0.12  0 0 0 0 0.10  0 0 0 0 0.07  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+      opacity: .55;
+      mix-blend-mode: multiply;
+    }
+
+    .wrap {
       position: relative;
-      overflow: hidden;
-    }
-    header::before {
-      content: '';
-      position: absolute;
-      top: -60px; right: -60px;
-      width: 200px; height: 200px;
-      border-radius: 50%;
-      background: var(--accent);
-      opacity: 0.15;
-    }
-    header::after {
-      content: '';
-      position: absolute;
-      bottom: -80px; left: 30%;
-      width: 260px; height: 260px;
-      border-radius: 50%;
-      background: var(--gold);
-      opacity: 0.08;
-    }
-    .header-left h1 {
-      font-family: 'Fraunces', serif;
-      font-size: 2.4rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1;
-    }
-    .header-left h1 span { color: var(--accent); }
-    .header-left p {
-      margin-top: 0.5rem;
-      font-size: 0.72rem;
-      color: #a09a90;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    .header-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.25rem;
-    }
-    #nav-date {
-      font-size: 0.7rem;
-      color: #a09a90;
-      letter-spacing: 0.06em;
-    }
-    #data-status {
-      font-size: 0.72rem;
-      padding: 0.25rem 0.75rem;
-      border-radius: 2rem;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: #d0cab8;
-    }
-    #data-status.ok { color: #7cc97a; border-color: rgba(124,201,122,0.3); background: rgba(124,201,122,0.08); }
-    #data-status.err { color: var(--accent); }
-
-    /* ─── MAIN LAYOUT ─── */
-    main {
-      max-width: 1100px;
+      z-index: 1;
+      max-width: 920px;
       margin: 0 auto;
-      padding: 2.5rem 2rem 4rem;
+      padding: 36px 28px 80px;
     }
 
-    /* ─── SEARCH SECTION ─── */
-    .section-label {
-      font-size: 0.65rem;
-      letter-spacing: 0.15em;
+    /* ─── MASTHEAD ─────────────────────────────────────── */
+    .masthead {
+      border-bottom: 1.5px solid var(--ink);
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+      position: relative;
+    }
+    .masthead::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0;
+      bottom: -5px;
+      height: 1px;
+      background: var(--ink);
+    }
+    .mast-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 10px;
+      letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 0.75rem;
+      margin-bottom: 18px;
+    }
+    .mast-top .vol { color: var(--ink-soft); }
+
+    .mast-title {
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: clamp(48px, 9vw, 88px);
+      line-height: 0.95;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      font-variation-settings: 'opsz' 72;
+    }
+    .mast-title .amp {
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent);
+      padding: 0 0.05em;
     }
 
+    .mast-sub {
+      margin-top: 14px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 14px;
+      font-family: var(--serif);
+      font-size: 16px;
+      font-style: italic;
+      color: var(--ink-soft);
+    }
+    .mast-sub .pellet {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+      transform: translateY(-2px);
+    }
+
+    /* ─── STATUS STRIP ─────────────────────────────────── */
+    .status-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: 1px solid var(--rule);
+      background: var(--surface);
+      margin: 28px 0 32px;
+    }
+    .status-cell {
+      padding: 14px 16px;
+      border-right: 1px solid var(--rule);
+    }
+    .status-cell:last-child { border-right: none; }
+    .status-label {
+      font-size: 9.5px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .status-value {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+    .status-value.tabular { font-variant-numeric: tabular-nums; }
+    .status-value .small { font-size: 14px; color: var(--muted); font-style: italic; }
+    .status-cell .indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .status-cell .indicator .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .indicator.live .dot { background: var(--good); animation: pulse 2.4s ease-in-out infinite; }
+    .indicator.err .dot { background: var(--danger); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* ─── SECTION HEADERS ──────────────────────────────── */
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin: 32px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--ink);
+    }
+    .section-head h2 {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      font-style: italic;
+    }
+    .section-head .num {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 14px;
+      color: var(--accent);
+    }
+    .section-head .meta {
+      margin-left: auto;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ─── SEARCH ───────────────────────────────────────── */
     .search-wrap {
       position: relative;
+      margin-bottom: 8px;
     }
-    #search-input {
+    .search-input-wrap {
+      position: relative;
+      background: var(--surface);
+      border: 1.5px solid var(--ink);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .search-input-wrap:focus-within {
+      border-color: var(--accent);
+      box-shadow: 4px 4px 0 var(--rule-soft);
+    }
+    .search-input-wrap::before {
+      content: "→";
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: var(--serif);
+      font-size: 18px;
+      color: var(--accent);
+      pointer-events: none;
+    }
+    #search {
       width: 100%;
-      padding: 0.85rem 1.1rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.88rem;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 4px;
+      padding: 16px 18px 16px 42px;
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 400;
+      background: transparent;
+      border: none;
       color: var(--ink);
       outline: none;
-      transition: border-color 0.2s;
+      letter-spacing: 0.01em;
     }
-    #search-input:focus { border-color: var(--accent); }
-    #search-input::placeholder { color: #b5b0a8; }
+    #search::placeholder {
+      color: var(--muted);
+      font-style: italic;
+      font-family: var(--serif);
+      font-size: 16px;
+    }
+    #search:disabled { cursor: not-allowed; opacity: 0.5; }
 
-    #autocomplete-list {
+    .search-results {
       position: absolute;
       top: calc(100% + 4px);
       left: 0; right: 0;
-      background: white;
-      border: 1.5px solid var(--border);
-      border-radius: 4px;
-      max-height: 280px;
+      background: var(--surface);
+      border: 1.5px solid var(--ink);
+      max-height: 380px;
       overflow-y: auto;
-      z-index: 100;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      z-index: 50;
+      box-shadow: 6px 6px 0 var(--rule-soft);
       display: none;
     }
-    #autocomplete-list.open { display: block; }
-    .ac-item {
-      padding: 0.65rem 1rem;
+    .search-results.open { display: block; }
+    .search-results::-webkit-scrollbar { width: 10px; }
+    .search-results::-webkit-scrollbar-track { background: var(--paper-2); }
+    .search-results::-webkit-scrollbar-thumb { background: var(--rule); }
+
+    .search-result {
+      padding: 10px 16px;
       cursor: pointer;
-      font-size: 0.78rem;
-      border-bottom: 1px solid var(--cream);
-      transition: background 0.15s;
+      border-bottom: 1px dashed var(--rule);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: baseline;
+      transition: background 0.1s;
+    }
+    .search-result:last-child { border-bottom: none; }
+    .search-result:hover, .search-result.kbd-active {
+      background: var(--paper-2);
+    }
+    .search-result .name {
+      font-size: 12px;
+      color: var(--ink);
       line-height: 1.4;
     }
-    .ac-item:last-child { border-bottom: none; }
-    .ac-item:hover, .ac-item.active { background: var(--accent-light); }
-    .ac-item .scheme-code { color: var(--muted); font-size: 0.68rem; display: block; margin-top: 2px; }
-    .ac-item .nav-badge {
-      float: right;
-      font-size: 0.68rem;
-      color: var(--green);
+    .search-result .name mark {
+      background: rgba(140,47,29,0.15);
+      color: var(--accent);
       font-weight: 500;
+      padding: 0 1px;
+    }
+    .search-result .meta {
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
       margin-top: 2px;
     }
-    .ac-count {
-      padding: 0.4rem 1rem;
-      font-size: 0.68rem;
-      color: var(--muted);
-      border-top: 1px solid var(--cream);
-      background: var(--cream);
+    .search-result .nav {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 15px;
+      color: var(--ink-soft);
+      white-space: nowrap;
     }
-
-    /* ─── HOLDINGS TABLE ─── */
-    .holdings-section {
-      margin-top: 2.5rem;
+    .search-result.added .name { color: var(--muted); }
+    .search-result.added::after {
+      content: "✓ in portfolio";
+      font-size: 10px;
+      color: var(--good);
+      letter-spacing: 0.06em;
     }
-    .holdings-header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-    #clear-all-btn {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--accent);
-      border: 1px solid var(--accent-light);
-      background: transparent;
-      padding: 0.3rem 0.8rem;
-      border-radius: 2rem;
-      cursor: pointer;
-      letter-spacing: 0.04em;
-      transition: all 0.15s;
-    }
-    #clear-all-btn:hover { background: var(--accent-light); }
-
-    #empty-state {
-      background: var(--cream);
-      border: 1.5px dashed var(--border);
-      border-radius: 6px;
-      padding: 3rem 2rem;
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.82rem;
-    }
-    #empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-    #empty-state p { line-height: 1.6; }
-
-    .holdings-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 6px;
-      overflow: hidden;
-      border: 1.5px solid var(--border);
-      display: none;
-    }
-    .holdings-table.visible { display: table; }
-    .holdings-table th {
-      text-align: left;
-      padding: 0.7rem 1rem;
-      font-size: 0.62rem;
+    .search-summary {
+      padding: 8px 16px;
+      font-size: 10px;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
-      border-bottom: 1.5px solid var(--border);
-      background: var(--cream);
-      white-space: nowrap;
+      background: var(--paper-2);
+      border-bottom: 1px dashed var(--rule);
     }
-    .holdings-table td {
-      padding: 0.85rem 1rem;
-      font-size: 0.8rem;
-      border-bottom: 1px solid var(--cream);
-      vertical-align: middle;
-    }
-    .holdings-table tr:last-child td { border-bottom: none; }
-    .holdings-table tbody tr:hover td { background: #faf8f4; }
-
-    .fund-name-cell {
-      max-width: 320px;
-      line-height: 1.4;
-    }
-    .fund-name-cell .scheme-no {
-      display: block;
-      font-size: 0.65rem;
+    .search-empty {
+      padding: 24px;
+      text-align: center;
+      font-family: var(--serif);
+      font-style: italic;
       color: var(--muted);
-      margin-top: 2px;
     }
+
+    /* ─── PORTFOLIO TABLE ──────────────────────────────── */
+    .empty-state {
+      border: 1.5px dashed var(--rule);
+      background: var(--surface);
+      padding: 48px 24px;
+      text-align: center;
+      margin: 12px 0;
+    }
+    .empty-state .icon {
+      font-family: var(--serif);
+      font-size: 56px;
+      font-style: italic;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 14px;
+      font-weight: 300;
+    }
+    .empty-state h3 {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 400;
+      font-size: 22px;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .empty-state p {
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 340px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .holdings {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1.5px solid var(--ink);
+      margin-top: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .holdings thead th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 9.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink);
+      background: var(--paper-2);
+      border-bottom: 1.5px solid var(--ink);
+      font-weight: 500;
+    }
+    .holdings thead th.right { text-align: right; }
+    .holdings thead th.center { text-align: center; }
+
+    .holdings tbody tr {
+      border-bottom: 1px dashed var(--rule);
+      transition: background 0.15s;
+    }
+    .holdings tbody tr:last-child { border-bottom: none; }
+    .holdings tbody tr:hover { background: rgba(212,202,168,0.15); }
+    .holdings tbody tr.flash { animation: flash 0.6s ease-out; }
+    @keyframes flash {
+      0% { background: rgba(140,47,29,0.18); }
+      100% { background: transparent; }
+    }
+
+    .holdings td {
+      padding: 12px 14px;
+      vertical-align: middle;
+      font-size: 12px;
+    }
+    .h-idx {
+      width: 32px;
+      font-family: var(--serif);
+      font-style: italic;
+      color: var(--muted);
+      text-align: center;
+    }
+    .h-name {
+      max-width: 320px;
+      line-height: 1.45;
+    }
+    .h-name .scheme {
+      color: var(--ink);
+      font-weight: 400;
+    }
+    .h-name .meta {
+      display: flex;
+      gap: 8px;
+      margin-top: 3px;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+    .h-name .meta .tag {
+      padding: 1px 6px;
+      border: 1px solid var(--rule);
+      border-radius: 1px;
+      background: var(--paper);
+    }
+    .h-name .meta .tag.direct { color: var(--good); border-color: var(--good); }
+    .h-name .meta .tag.regular { color: var(--ink-soft); }
+    .h-name .meta .stale {
+      color: var(--warn);
+      font-style: italic;
+    }
+    .h-nav { text-align: right; font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--ink-soft); white-space: nowrap; }
+    .h-nav .rupee { color: var(--muted); margin-right: 2px; font-style: normal; }
+    .h-nav .date { display: block; font-size: 9.5px; color: var(--muted); font-style: normal; font-family: var(--mono); margin-top: 2px; letter-spacing: 0.04em; }
 
     .units-input {
       width: 110px;
-      padding: 0.4rem 0.6rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-      border: 1.5px solid var(--border);
-      border-radius: 3px;
-      background: var(--paper);
-      color: var(--ink);
+      padding: 6px 10px;
+      font-family: var(--mono);
+      font-size: 13px;
       text-align: right;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      color: var(--ink);
       outline: none;
-      transition: border-color 0.15s;
+      transition: border-color 0.15s, background 0.15s;
+      font-variant-numeric: tabular-nums;
     }
-    .units-input:focus { border-color: var(--accent); background: white; }
+    .units-input:focus {
+      border-color: var(--accent);
+      background: white;
+      box-shadow: 2px 2px 0 var(--rule-soft);
+    }
+    .units-input::-webkit-outer-spin-button,
+    .units-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .units-input { -moz-appearance: textfield; }
 
-    .nav-val { color: var(--muted); }
-    .value-val { font-weight: 500; color: var(--ink); }
-    .value-val.zero { color: #c0bbaf; }
+    .h-value {
+      text-align: right;
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .h-value.zero { color: var(--rule); font-style: italic; }
+    .h-value .rupee { color: var(--muted); margin-right: 2px; font-weight: 400; }
 
+    .h-action {
+      text-align: center;
+      width: 36px;
+    }
     .remove-btn {
-      background: none;
+      background: transparent;
       border: none;
       cursor: pointer;
-      color: #c0bbaf;
-      font-size: 1rem;
-      padding: 0.2rem 0.4rem;
-      border-radius: 3px;
-      transition: all 0.15s;
+      color: var(--rule);
+      font-family: var(--serif);
+      font-size: 20px;
       line-height: 1;
+      padding: 4px 8px;
+      transition: color 0.15s, transform 0.15s;
     }
-    .remove-btn:hover { color: var(--accent); background: var(--accent-light); }
+    .remove-btn:hover {
+      color: var(--accent);
+      transform: scale(1.15);
+    }
 
-    /* ─── SUMMARY CARD ─── */
-    .summary-strip {
-      margin-top: 1.5rem;
+    /* ─── TOTAL FOOTER ─────────────────────────────────── */
+    .total-bar {
+      margin-top: 18px;
+      background: var(--ink);
+      color: var(--paper);
+      padding: 22px 24px;
       display: flex;
-      gap: 1px;
-      background: var(--border);
-      border-radius: 6px;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      position: relative;
       overflow: hidden;
-      border: 1.5px solid var(--border);
     }
-    .summary-cell {
-      flex: 1;
-      background: white;
-      padding: 1.1rem 1.2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.3rem;
+    .total-bar::before {
+      content: "";
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.18;
     }
-    .summary-cell .s-label {
-      font-size: 0.6rem;
-      letter-spacing: 0.12em;
+    .total-bar::after {
+      content: "TOTAL";
+      position: absolute;
+      bottom: -18px;
+      left: -8px;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 90px;
+      color: rgba(245,239,226,0.04);
+      letter-spacing: -0.04em;
+      pointer-events: none;
+    }
+    .total-bar .left { position: relative; z-index: 1; }
+    .total-bar .label {
+      font-size: 9.5px;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: var(--muted);
+      color: rgba(245,239,226,0.6);
+      margin-bottom: 6px;
     }
-    .summary-cell .s-val {
-      font-family: 'Fraunces', serif;
-      font-size: 1.6rem;
+    .total-bar .breakdown {
+      font-size: 11px;
+      color: rgba(245,239,226,0.55);
+      margin-top: 6px;
+      font-style: italic;
+      font-family: var(--serif);
+    }
+    .total-bar .right { position: relative; z-index: 1; text-align: right; }
+    .total-bar .amount {
+      font-family: var(--serif);
+      font-size: clamp(36px, 6vw, 48px);
       font-weight: 600;
-      color: var(--ink);
+      letter-spacing: -0.02em;
       line-height: 1;
+      font-variant-numeric: tabular-nums;
     }
-    .summary-cell.total { background: var(--ink); }
-    .summary-cell.total .s-label { color: #908a80; }
-    .summary-cell.total .s-val { color: var(--paper); }
-    .summary-cell .s-sub {
-      font-size: 0.65rem;
-      color: var(--muted);
-      margin-top: 0.1rem;
+    .total-bar .amount .rupee {
+      font-weight: 300;
+      font-style: italic;
+      color: var(--accent-soft);
+      margin-right: 8px;
+    }
+    .total-bar .amount-words {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 13px;
+      color: rgba(245,239,226,0.7);
+      margin-top: 6px;
     }
 
-    /* ─── LOADER ─── */
-    #loader {
-      display: none;
-      text-align: center;
-      padding: 3rem;
-      color: var(--muted);
-      font-size: 0.8rem;
+    /* ─── ACTIONS ──────────────────────────────────────── */
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
     }
-    #loader .spinner {
-      width: 28px; height: 28px;
-      border: 2px solid var(--border);
+    .btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      background: var(--surface);
+      border: 1px solid var(--ink);
+      color: var(--ink);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn:hover { background: var(--ink); color: var(--paper); }
+    .btn.danger { color: var(--accent); border-color: var(--accent); }
+    .btn.danger:hover { background: var(--accent); color: var(--paper); }
+    .btn .arr { margin-right: 4px; font-family: var(--serif); }
+
+    /* ─── LOADER ───────────────────────────────────────── */
+    .loader {
+      padding: 60px 24px;
+      text-align: center;
+      color: var(--ink-soft);
+    }
+    .loader .spin {
+      width: 32px; height: 32px;
+      border: 1.5px solid var(--rule);
       border-top-color: var(--accent);
       border-radius: 50%;
+      margin: 0 auto 16px;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 1rem;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    #loader.active { display: block; }
-
-    /* ─── NAV DISCLAIMER ─── */
-    .disclaimer {
-      margin-top: 2.5rem;
-      font-size: 0.65rem;
+    .loader .msg {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 17px;
+      color: var(--ink-soft);
+    }
+    .loader .sub {
+      font-size: 11px;
       color: var(--muted);
-      line-height: 1.7;
-      border-top: 1px solid var(--border);
-      padding-top: 1rem;
+      margin-top: 6px;
+      letter-spacing: 0.04em;
     }
 
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 680px) {
-      header { padding: 1.5rem 1.25rem; }
-      .header-left h1 { font-size: 1.8rem; }
-      main { padding: 1.5rem 1rem 3rem; }
-      .summary-strip { flex-direction: column; }
-      .fund-name-cell { max-width: 170px; }
-      .holdings-table th:nth-child(3),
-      .holdings-table td:nth-child(3) { display: none; }
+    /* ─── ERROR / FALLBACK ─────────────────────────────── */
+    .error-box {
+      border: 1.5px solid var(--accent);
+      background: var(--surface);
+      padding: 24px;
+      margin: 16px 0;
+    }
+    .error-box h3 {
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 22px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .error-box p {
+      font-size: 12px;
+      color: var(--ink-soft);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .error-box .file-upload {
+      display: inline-block;
+      padding: 10px 18px;
+      background: var(--ink);
+      color: var(--paper);
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      transition: background 0.15s;
+    }
+    .error-box .file-upload:hover { background: var(--accent); }
+    .error-box .file-upload input { display: none; }
+    .error-box .download-link {
+      font-size: 11px;
+      color: var(--accent);
+      margin-left: 12px;
+      text-decoration: underline;
+    }
+
+    /* ─── COLOPHON ─────────────────────────────────────── */
+    .colophon {
+      margin-top: 40px;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+      font-size: 10.5px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .colophon p { margin-bottom: 4px; }
+    .colophon a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+    .colophon a:hover { color: var(--ink); border-color: var(--ink); }
+    .colophon .ornament {
+      text-align: center;
+      font-family: var(--serif);
+      font-size: 18px;
+      color: var(--accent);
+      margin: 12px 0 8px;
+      letter-spacing: 0.4em;
+    }
+
+    /* ─── RESPONSIVE ───────────────────────────────────── */
+    @media (max-width: 720px) {
+      .wrap { padding: 24px 18px 60px; }
+      .status-strip { grid-template-columns: 1fr; }
+      .status-cell { border-right: none; border-bottom: 1px solid var(--rule); }
+      .status-cell:last-child { border-bottom: none; }
+      .holdings thead { display: none; }
+      .holdings, .holdings tbody, .holdings tr, .holdings td { display: block; }
+      .holdings tbody tr {
+        padding: 14px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .holdings td { padding: 4px 0; text-align: left !important; border: none; }
+      .h-idx { display: none !important; }
+      .h-name { max-width: none; margin-bottom: 8px; }
+      .h-nav { font-size: 13px; }
+      .h-nav::before { content: "NAV: "; font-family: var(--mono); font-style: normal; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-right: 8px; }
+      .h-units::before { content: "Units: "; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-right: 8px; }
+      .h-value { display: flex !important; justify-content: space-between; align-items: baseline; padding-top: 8px !important; margin-top: 6px; border-top: 1px dashed var(--rule) !important; }
+      .h-value::before { content: "Value"; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; }
+      .h-action { position: absolute; top: 14px; right: 14px; }
+      .holdings tbody tr { position: relative; }
+      .total-bar { flex-direction: column; align-items: stretch; }
+      .total-bar .right { text-align: left; }
+    }
+
+    @media print {
+      body::before, body::after { display: none; }
+      .search-wrap, .actions, .loader, .error-box { display: none !important; }
+      .total-bar { background: white; color: var(--ink); border: 2px solid var(--ink); }
+      .total-bar .label, .total-bar .amount, .total-bar .amount-words, .total-bar .breakdown { color: var(--ink); }
     }
   </style>
 </head>
+
 <body>
+  <div class="wrap">
 
-<header>
-  <div class="header-left">
-    <h1>MF Portfolio <span>Tracker</span></h1>
-    <p>Live NAV · AMFI India · All Mutual Funds</p>
-  </div>
-  <div class="header-right">
-    <span id="nav-date"></span>
-    <span id="data-status">Loading NAV data…</span>
-  </div>
-</header>
+    <!-- ─── MASTHEAD ────────────────────────────────────── -->
+    <header class="masthead">
+      <div class="mast-top">
+        <span class="vol">Vol. 1 · Folio Edition</span>
+        <span id="todays-date">—</span>
+      </div>
+      <h1 class="mast-title">NAV<span class="amp">&amp;</span>Ledger</h1>
+      <p class="mast-sub">
+        <span class="pellet"></span>
+        A personal mutual fund portfolio almanac
+        <span class="pellet"></span>
+        Sourced from <em>AMFI India</em>
+      </p>
+    </header>
 
-<main>
-  <!-- Search -->
-  <div class="section-label">Search &amp; add funds</div>
-  <div class="search-wrap">
-    <input type="text" id="search-input" placeholder="Type fund name, house, or scheme code…" autocomplete="off" disabled />
-    <div id="autocomplete-list"></div>
-  </div>
+    <!-- ─── STATUS STRIP ────────────────────────────────── -->
+    <section class="status-strip" aria-label="Data status">
+      <div class="status-cell">
+        <div class="status-label">Schemes Loaded</div>
+        <div class="status-value tabular" id="stat-schemes">—</div>
+        <div class="indicator" id="stat-feed">
+          <span class="dot"></span>
+          <span id="stat-feed-text">Connecting…</span>
+        </div>
+      </div>
+      <div class="status-cell">
+        <div class="status-label">NAV Date</div>
+        <div class="status-value" id="stat-navdate">—</div>
+        <div class="indicator">
+          <span style="font-size:10px; letter-spacing:0.1em;" id="stat-source">amfi · india</span>
+        </div>
+      </div>
+      <div class="status-cell">
+        <div class="status-label">Holdings</div>
+        <div class="status-value tabular" id="stat-holdings">0</div>
+        <div class="indicator">
+          <span style="font-size:10px;" id="stat-holdings-sub">no funds added yet</span>
+        </div>
+      </div>
+    </section>
 
-  <div id="loader" class="active">
-    <div class="spinner"></div>
-    Fetching latest NAV data from AMFI…
-  </div>
-
-  <!-- Holdings -->
-  <div class="holdings-section" id="holdings-section" style="display:none">
-    <div class="holdings-header-row">
-      <div class="section-label" style="margin-bottom:0">Your Holdings</div>
-      <button id="clear-all-btn">✕ Clear all</button>
+    <!-- ─── SEARCH SECTION ──────────────────────────────── -->
+    <div class="section-head">
+      <span class="num">§ 01</span>
+      <h2>Search the registry</h2>
+      <span class="meta">type to filter</span>
     </div>
 
-    <div id="empty-state">
-      <div class="icon">📊</div>
-      <p>No funds added yet.<br>Search above to add funds to your portfolio.</p>
+    <div class="search-wrap">
+      <div class="search-input-wrap">
+        <input type="text" id="search" placeholder="e.g. Parag Parikh Flexi Cap, Nippon Small Cap, HDFC…" disabled autocomplete="off" spellcheck="false" />
+      </div>
+      <div class="search-results" id="search-results"></div>
     </div>
 
-    <table class="holdings-table" id="holdings-table">
-      <thead>
-        <tr>
-          <th>Fund Name</th>
-          <th style="text-align:right">NAV (₹)</th>
-          <th style="text-align:right">As of Date</th>
-          <th style="text-align:right">Units Held</th>
-          <th style="text-align:right">Value (₹)</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="holdings-body"></tbody>
-    </table>
+    <!-- ─── LOADER / ERROR / HOLDINGS ───────────────────── -->
+    <div id="loader" class="loader">
+      <div class="spin"></div>
+      <div class="msg">Fetching today's NAV bulletin…</div>
+      <div class="sub">Reading from portal.amfiindia.com</div>
+    </div>
 
-    <!-- Summary -->
-    <div class="summary-strip" id="summary-strip" style="display:none">
-      <div class="summary-cell">
-        <span class="s-label">Funds Tracked</span>
-        <span class="s-val" id="s-funds">0</span>
+    <div id="error-box" class="error-box" style="display:none">
+      <h3>Couldn't reach AMFI directly</h3>
+      <p>
+        Browsers block direct calls to <code>portal.amfiindia.com</code> due to CORS policy, and our public proxies are
+        currently unreachable. You can still use this tool — just download the NAV file once and upload it here.
+      </p>
+      <label class="file-upload">
+        Upload NAVAll.txt
+        <input type="file" id="manual-file" accept=".txt,text/plain" />
+      </label>
+      <a class="download-link" href="https://portal.amfiindia.com/spages/NAVAll.txt" target="_blank" rel="noopener">
+        Download NAVAll.txt →
+      </a>
+    </div>
+
+    <!-- ─── PORTFOLIO SECTION ───────────────────────────── -->
+    <div id="portfolio-section" style="display:none">
+      <div class="section-head">
+        <span class="num">§ 02</span>
+        <h2>Your portfolio</h2>
+        <span class="meta" id="holdings-meta"></span>
       </div>
-      <div class="summary-cell">
-        <span class="s-label">Funds with Units</span>
-        <span class="s-val" id="s-active">0</span>
+
+      <div id="empty-state" class="empty-state">
+        <div class="icon">∅</div>
+        <h3>The folio is empty</h3>
+        <p>Search the registry above and add funds to start tracking your portfolio. Your selections are saved on this device.</p>
       </div>
-      <div class="summary-cell total">
-        <span class="s-label">Total Portfolio Value</span>
-        <span class="s-val" id="s-total">₹ 0</span>
-        <span class="s-sub" id="s-nav-note"></span>
+
+      <table class="holdings" id="holdings-table" style="display:none">
+        <thead>
+          <tr>
+            <th class="center" style="width:32px">#</th>
+            <th>Scheme</th>
+            <th class="right">NAV</th>
+            <th class="right">Units</th>
+            <th class="right">Value</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="holdings-body"></tbody>
+      </table>
+
+      <!-- Total bar -->
+      <div class="total-bar" id="total-bar" style="display:none">
+        <div class="left">
+          <div class="label">Portfolio Value · Total</div>
+          <div class="breakdown" id="breakdown">—</div>
+        </div>
+        <div class="right">
+          <div class="amount"><span class="rupee">₹</span><span id="total-amount">0.00</span></div>
+          <div class="amount-words" id="total-words"></div>
+        </div>
+      </div>
+
+      <div class="actions" id="actions" style="display:none">
+        <button class="btn" id="export-csv"><span class="arr">↓</span>Export CSV</button>
+        <button class="btn" id="print-folio"><span class="arr">⎙</span>Print folio</button>
+        <button class="btn danger" id="clear-all"><span class="arr">×</span>Clear all holdings</button>
       </div>
     </div>
-  </div>
 
-  <div class="disclaimer" id="disclaimer" style="display:none">
-    NAV data sourced live from AMFI India (portal.amfiindia.com). Values shown are indicative based on the latest published NAV and units entered. This tool does not constitute financial advice.
+    <!-- ─── COLOPHON ────────────────────────────────────── -->
+    <footer class="colophon">
+      <div class="ornament">⁂</div>
+      <p><strong>NAV Ledger</strong> — open-source. Data: <a href="https://portal.amfiindia.com/spages/NAVAll.txt" target="_blank" rel="noopener">AMFI India NAV bulletin</a>, refreshed daily after market close.</p>
+      <p>Holdings are stored only in your browser (localStorage) — nothing is sent to any server. NAV shown is the previous business-day close as published by AMFI.</p>
+      <p>Set in <em>Newsreader</em> &amp; <em>JetBrains Mono</em>. This is not investment advice.</p>
+    </footer>
   </div>
-</main>
 
 <script>
-  const AMFI_URL = 'https://portal.amfiindia.com/spages/NAVAll.txt';
-  const PROXY = `https://api.allorigins.win/raw?url=${encodeURIComponent(AMFI_URL)}`;
+'use strict';
 
-  let allFunds = [];   // { code, name, nav, date }
-  let holdings = [];   // { code, name, nav, date, units }
+/* ════════════════════════════════════════════════════════════
+   NAV LEDGER · Application logic
+   ──────────────────────────────────────────────────────────── */
 
-  // ─── FORMAT ───
-  function fmt(n) {
-    return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(n);
-  }
-  function fmtVal(n) {
-    return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
-  }
-  function fmtCrore(n) {
-    if (n >= 1e7) return `₹ ${(n/1e7).toFixed(2)} Cr`;
-    if (n >= 1e5) return `₹ ${(n/1e5).toFixed(2)} L`;
-    return `₹ ${fmtVal(n)}`;
-  }
+const AMFI_URL = 'https://portal.amfiindia.com/spages/NAVAll.txt';
+const PROXIES = [
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+];
+const STORAGE_KEY = 'navledger.holdings.v1';
 
-  // ─── PARSE AMFI DATA ───
-  function parseAMFI(text) {
-    const lines = text.split('\n');
-    const funds = [];
-    for (const line of lines) {
-      const parts = line.split(';');
-      if (parts.length < 6) continue;
-      const code = parts[0].trim();
-      const name = parts[3].trim();
-      const navRaw = parts[4].trim();
-      const date = parts[5].trim();
-      const nav = parseFloat(navRaw);
-      if (!code || !name || isNaN(nav) || nav <= 0) continue;
-      funds.push({ code, name, nav, date });
+// State
+let allFunds = [];          // [{code, isin, name, nav, date, dateObj, category, amc, plan}]
+let fundIndex = new Map();  // code -> fund
+let holdings = [];          // [{code, units}]
+let activeKbdIdx = -1;
+let currentResults = [];
+
+/* ─── UTILS ──────────────────────────────────────────────── */
+
+const $ = id => document.getElementById(id);
+
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[c]));
+
+function formatINR(n, decimals = 2) {
+  if (!isFinite(n)) return '0.00';
+  return Number(n).toLocaleString('en-IN', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
+
+function formatUnits(n) {
+  if (!isFinite(n) || n === 0) return '0';
+  return Number(n).toLocaleString('en-IN', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  });
+}
+
+// Convert number to Indian-words (for amount-in-words flourish)
+function amountInWords(n) {
+  if (!isFinite(n) || n <= 0) return '';
+  const lakh = 100000, crore = 10000000;
+  if (n >= crore) return `≈ ${(n/crore).toFixed(2)} crore rupees`;
+  if (n >= lakh) return `≈ ${(n/lakh).toFixed(2)} lakh rupees`;
+  if (n >= 1000) return `≈ ${(n/1000).toFixed(1)} thousand rupees`;
+  return '';
+}
+
+function parseAmfiDate(s) {
+  // "27-Apr-2026"
+  const m = String(s).match(/(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
+  if (!m) return null;
+  const months = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
+  const mo = months[m[2].slice(0,1).toUpperCase()+m[2].slice(1,3).toLowerCase()];
+  return new Date(Number(m[3]), mo, Number(m[1]));
+}
+
+function daysAgo(d) {
+  if (!d) return null;
+  const ms = Date.now() - d.getTime();
+  return Math.floor(ms / 86400000);
+}
+
+/* ─── DATA PARSE ─────────────────────────────────────────── */
+
+function parseNAVText(text) {
+  const lines = text.split(/\r?\n/);
+  const funds = [];
+  let currentCategory = '';
+  let currentAMC = '';
+
+  for (let line of lines) {
+    line = line.trim();
+    if (!line) continue;
+    if (line.startsWith('Scheme Code')) continue; // header
+
+    // Category lines look like: "Open Ended Schemes(Equity Scheme - Large Cap Fund)"
+    if (!line.includes(';')) {
+      if (line.includes('Schemes(') || line.includes('Schemes (')) {
+        currentCategory = line;
+      } else {
+        currentAMC = line;
+      }
+      continue;
     }
-    return funds;
-  }
 
-  // ─── LOAD DATA ───
-  async function loadData() {
-    const statusEl = document.getElementById('data-status');
-    const loaderEl = document.getElementById('loader');
-    const searchEl = document.getElementById('search-input');
+    const parts = line.split(';');
+    if (parts.length < 6) continue;
+
+    const code = parts[0].trim();
+    const isin = parts[1].trim();
+    const name = parts[3].trim();
+    const navStr = parts[4].trim();
+    const dateStr = parts[5].trim();
+
+    const nav = parseFloat(navStr);
+    if (!code || !name || !isFinite(nav) || nav <= 0) continue;
+
+    const lname = name.toLowerCase();
+    const isDirect = /\bdirect\b/i.test(name);
+    const isRegular = /\bregular\b/i.test(name);
+    const dateObj = parseAmfiDate(dateStr);
+
+    funds.push({
+      code,
+      isin: isin === '-' ? '' : isin,
+      name,
+      nameLower: lname,
+      nav,
+      date: dateStr,
+      dateObj,
+      category: currentCategory,
+      amc: currentAMC,
+      plan: isDirect ? 'direct' : (isRegular ? 'regular' : 'other'),
+    });
+  }
+  return funds;
+}
+
+/* ─── DATA LOAD ──────────────────────────────────────────── */
+
+async function fetchWithProxies() {
+  let lastErr;
+  for (const wrap of PROXIES) {
     try {
-      const res = await fetch(PROXY);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const url = wrap(AMFI_URL);
+      const res = await fetch(url, { method: 'GET' });
+      if (!res.ok) { lastErr = new Error(`${url}: HTTP ${res.status}`); continue; }
       const text = await res.text();
-      allFunds = parseAMFI(text);
-      if (allFunds.length === 0) throw new Error('No records parsed');
-      statusEl.textContent = `${allFunds.length.toLocaleString('en-IN')} schemes loaded`;
-      statusEl.className = 'ok';
-      // Show sample date
-      const sample = allFunds.find(f => f.date);
-      if (sample) document.getElementById('nav-date').textContent = `NAV as of ${sample.date}`;
-      searchEl.disabled = false;
-      searchEl.focus();
+      if (!text || text.length < 1000) { lastErr = new Error(`${url}: empty/short response`); continue; }
+      return text;
     } catch (e) {
-      statusEl.textContent = 'Failed to load NAV data';
-      statusEl.className = 'err';
-      loaderEl.innerHTML = `<p style="color:var(--accent)">Could not fetch AMFI data. Please check your connection and refresh.<br><small>${e.message}</small></p>`;
-      return;
+      lastErr = e;
     }
-    loaderEl.classList.remove('active');
-    document.getElementById('holdings-section').style.display = '';
-    document.getElementById('disclaimer').style.display = '';
+  }
+  throw lastErr || new Error('All proxies failed');
+}
+
+async function loadData() {
+  try {
+    const text = await fetchWithProxies();
+    onDataLoaded(text);
+  } catch (err) {
+    console.error('Fetch failed:', err);
+    showError();
+  }
+}
+
+function onDataLoaded(text) {
+  allFunds = parseNAVText(text);
+  fundIndex = new Map(allFunds.map(f => [f.code, f]));
+
+  // Sort by name for consistent search
+  allFunds.sort((a, b) => a.name.localeCompare(b.name));
+
+  // Determine "current" date (most common date in feed)
+  const dateCounts = {};
+  for (const f of allFunds) dateCounts[f.date] = (dateCounts[f.date] || 0) + 1;
+  const currentDate = Object.entries(dateCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || '—';
+
+  // Update UI
+  $('loader').style.display = 'none';
+  $('error-box').style.display = 'none';
+  $('portfolio-section').style.display = '';
+  $('search').disabled = false;
+  $('stat-schemes').textContent = allFunds.length.toLocaleString('en-IN');
+  $('stat-navdate').innerHTML = `${currentDate.split('-').slice(0,2).join(' ')}<span class="small"> · ${currentDate.split('-')[2]}</span>`;
+
+  const feed = $('stat-feed');
+  feed.classList.add('live');
+  $('stat-feed-text').textContent = 'live · refreshed';
+
+  // Restore holdings from localStorage
+  loadHoldings();
+  renderHoldings();
+}
+
+function showError() {
+  $('loader').style.display = 'none';
+  $('error-box').style.display = '';
+  const feed = $('stat-feed');
+  feed.classList.add('err');
+  $('stat-feed-text').textContent = 'fetch failed · upload manually';
+}
+
+/* ─── MANUAL FILE UPLOAD ─────────────────────────────────── */
+
+$('manual-file').addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    onDataLoaded(text);
+  } catch (err) {
+    alert('Could not read file: ' + err.message);
+  }
+});
+
+/* ─── SEARCH ─────────────────────────────────────────────── */
+
+const searchEl = $('search');
+const resultsEl = $('search-results');
+
+function highlightMatch(name, q) {
+  if (!q) return escapeHtml(name);
+  const lname = name.toLowerCase();
+  const idx = lname.indexOf(q);
+  if (idx === -1) return escapeHtml(name);
+  return escapeHtml(name.slice(0, idx))
+    + `<mark>${escapeHtml(name.slice(idx, idx + q.length))}</mark>`
+    + escapeHtml(name.slice(idx + q.length));
+}
+
+function runSearch(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) {
+    resultsEl.classList.remove('open');
+    resultsEl.innerHTML = '';
+    currentResults = [];
+    return;
+  }
+  // Tokenize multi-word queries: ALL words must match
+  const tokens = q.split(/\s+/).filter(Boolean);
+
+  const matches = [];
+  for (const f of allFunds) {
+    let ok = true;
+    for (const t of tokens) {
+      if (!f.nameLower.includes(t) && !f.code.includes(t)) { ok = false; break; }
+    }
+    if (ok) matches.push(f);
+    if (matches.length > 200) break; // perf cap
+  }
+
+  currentResults = matches.slice(0, 60);
+  renderSearchResults(currentResults, matches.length, q);
+}
+
+function renderSearchResults(items, total, q) {
+  if (!items.length) {
+    resultsEl.innerHTML = '<div class="search-empty">No schemes match this search.</div>';
+    resultsEl.classList.add('open');
+    return;
+  }
+
+  const inFolio = new Set(holdings.map(h => h.code));
+  const summary = total > items.length
+    ? `<div class="search-summary">Showing top ${items.length} of ${total.toLocaleString('en-IN')} matches · refine to narrow</div>`
+    : `<div class="search-summary">${items.length} match${items.length === 1 ? '' : 'es'}</div>`;
+
+  resultsEl.innerHTML = summary + items.map((f, i) => {
+    const added = inFolio.has(f.code);
+    return `
+      <div class="search-result ${added ? 'added' : ''}" data-code="${f.code}" data-i="${i}">
+        <div>
+          <div class="name">${highlightMatch(f.name, q)}</div>
+          <div class="meta">code ${f.code} · ${escapeHtml(f.amc || '—')}</div>
+        </div>
+        <div class="nav">₹ ${formatINR(f.nav, 4)}</div>
+      </div>
+    `;
+  }).join('');
+
+  resultsEl.classList.add('open');
+  activeKbdIdx = -1;
+}
+
+// Debounced input
+let searchTimer;
+searchEl.addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => runSearch(e.target.value), 120);
+});
+
+// Keyboard nav
+searchEl.addEventListener('keydown', e => {
+  const items = resultsEl.querySelectorAll('.search-result');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    activeKbdIdx = Math.min(activeKbdIdx + 1, items.length - 1);
+    updateKbdActive(items);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    activeKbdIdx = Math.max(activeKbdIdx - 1, 0);
+    updateKbdActive(items);
+  } else if (e.key === 'Enter' && activeKbdIdx >= 0) {
+    e.preventDefault();
+    const code = items[activeKbdIdx].dataset.code;
+    addFund(code);
+  } else if (e.key === 'Escape') {
+    resultsEl.classList.remove('open');
+    searchEl.blur();
+  }
+});
+
+function updateKbdActive(items) {
+  items.forEach((el, i) => el.classList.toggle('kbd-active', i === activeKbdIdx));
+  if (activeKbdIdx >= 0) items[activeKbdIdx].scrollIntoView({ block: 'nearest' });
+}
+
+resultsEl.addEventListener('click', e => {
+  const row = e.target.closest('.search-result');
+  if (!row) return;
+  addFund(row.dataset.code);
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) {
+    resultsEl.classList.remove('open');
+  }
+});
+
+searchEl.addEventListener('focus', () => {
+  if (currentResults.length) resultsEl.classList.add('open');
+});
+
+/* ─── HOLDINGS MANAGEMENT ────────────────────────────────── */
+
+function addFund(code) {
+  const fund = fundIndex.get(code);
+  if (!fund) return;
+  const existing = holdings.find(h => h.code === code);
+  if (existing) {
+    // Already added — flash the row
+    flashRow(code);
+    searchEl.value = '';
+    runSearch('');
+    return;
+  }
+  holdings.push({ code, units: 0 });
+  saveHoldings();
+  renderHoldings();
+  searchEl.value = '';
+  runSearch('');
+  // Focus the units input of the newly added row
+  setTimeout(() => {
+    const row = document.querySelector(`tr[data-code="${code}"] .units-input`);
+    if (row) { row.focus(); row.select(); }
+  }, 50);
+}
+
+function removeFund(code) {
+  holdings = holdings.filter(h => h.code !== code);
+  saveHoldings();
+  renderHoldings();
+}
+
+function updateUnits(code, units) {
+  const h = holdings.find(x => x.code === code);
+  if (!h) return;
+  h.units = isFinite(units) && units > 0 ? units : 0;
+  saveHoldings();
+  updateRowValue(code);
+  updateTotal();
+}
+
+function flashRow(code) {
+  const row = document.querySelector(`tr[data-code="${code}"]`);
+  if (row) {
+    row.classList.remove('flash');
+    void row.offsetWidth; // force reflow
+    row.classList.add('flash');
+  }
+}
+
+/* ─── HOLDINGS PERSISTENCE ───────────────────────────────── */
+
+function saveHoldings() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(holdings));
+  } catch (e) { /* quota or disabled — silent */ }
+}
+
+function loadHoldings() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return;
+    // Filter out funds no longer in the registry
+    holdings = parsed.filter(h => h && fundIndex.has(h.code))
+      .map(h => ({ code: h.code, units: Number(h.units) || 0 }));
+  } catch (e) { /* corrupted — ignore */ }
+}
+
+/* ─── RENDER HOLDINGS ────────────────────────────────────── */
+
+function renderHoldings() {
+  const tbody = $('holdings-body');
+  const table = $('holdings-table');
+  const empty = $('empty-state');
+  const totalBar = $('total-bar');
+  const actions = $('actions');
+
+  $('stat-holdings').textContent = holdings.length;
+  $('stat-holdings-sub').textContent = holdings.length === 0
+    ? 'no funds added yet'
+    : `${holdings.filter(h => h.units > 0).length} with units · ${holdings.length} tracked`;
+
+  if (!holdings.length) {
+    empty.style.display = '';
+    table.style.display = 'none';
+    totalBar.style.display = 'none';
+    actions.style.display = 'none';
+    $('holdings-meta').textContent = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+  table.style.display = '';
+  totalBar.style.display = '';
+  actions.style.display = '';
+
+  // Sort holdings by value (desc), zero values last
+  const enriched = holdings.map((h, i) => {
+    const f = fundIndex.get(h.code);
+    return { ...h, fund: f, value: (f?.nav || 0) * (h.units || 0), addOrder: i };
+  }).sort((a, b) => b.value - a.value || a.addOrder - b.addOrder);
+
+  tbody.innerHTML = enriched.map((row, i) => {
+    const f = row.fund;
+    if (!f) return '';
+    const stale = f.dateObj ? daysAgo(f.dateObj) > 7 : false;
+    const planTag = f.plan === 'direct'
+      ? '<span class="tag direct">DIRECT</span>'
+      : f.plan === 'regular'
+        ? '<span class="tag regular">REGULAR</span>'
+        : '';
+    const staleTag = stale ? `<span class="stale">⚠ stale (${f.date})</span>` : '';
+
+    return `
+      <tr data-code="${f.code}">
+        <td class="h-idx">${String(i + 1).padStart(2, '0')}</td>
+        <td class="h-name">
+          <div class="scheme">${escapeHtml(f.name)}</div>
+          <div class="meta">
+            <span class="tag">${escapeHtml(f.amc || '—')}</span>
+            ${planTag}
+            ${staleTag}
+          </div>
+        </td>
+        <td class="h-nav">
+          <span class="rupee">₹</span>${formatINR(f.nav, 4)}
+          <span class="date">${escapeHtml(f.date)}</span>
+        </td>
+        <td class="h-units" style="text-align:right">
+          <input type="number" class="units-input" min="0" step="0.001"
+                 inputmode="decimal" placeholder="0.000"
+                 value="${row.units > 0 ? row.units : ''}"
+                 data-code="${f.code}" />
+        </td>
+        <td class="h-value ${row.value === 0 ? 'zero' : ''}">
+          ${row.value > 0 ? `<span class="rupee">₹</span>${formatINR(row.value, 2)}` : '—'}
+        </td>
+        <td class="h-action">
+          <button class="remove-btn" data-code="${f.code}" title="Remove ${escapeHtml(f.name)}" aria-label="Remove">×</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Attach handlers
+  tbody.querySelectorAll('.units-input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      updateUnits(e.target.dataset.code, parseFloat(e.target.value));
+    });
+    inp.addEventListener('focus', e => e.target.select());
+  });
+  tbody.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      removeFund(e.target.dataset.code);
+    });
+  });
+
+  updateTotal();
+  $('holdings-meta').textContent = `${holdings.length} fund${holdings.length === 1 ? '' : 's'} tracked`;
+}
+
+function updateRowValue(code) {
+  const f = fundIndex.get(code);
+  const h = holdings.find(x => x.code === code);
+  if (!f || !h) return;
+  const value = f.nav * (h.units || 0);
+  const cell = document.querySelector(`tr[data-code="${code}"] .h-value`);
+  if (cell) {
+    if (value > 0) {
+      cell.classList.remove('zero');
+      cell.innerHTML = `<span class="rupee">₹</span>${formatINR(value, 2)}`;
+    } else {
+      cell.classList.add('zero');
+      cell.innerHTML = '—';
+    }
+  }
+}
+
+function updateTotal() {
+  let total = 0;
+  let active = 0;
+  for (const h of holdings) {
+    const f = fundIndex.get(h.code);
+    if (!f) continue;
+    const v = (f.nav || 0) * (h.units || 0);
+    total += v;
+    if (v > 0) active++;
+  }
+  $('total-amount').textContent = formatINR(total, 2);
+  $('total-words').textContent = amountInWords(total);
+  $('breakdown').textContent = active === 0
+    ? 'enter unit holdings to see your portfolio value'
+    : `across ${active} fund${active === 1 ? '' : 's'} with units`;
+}
+
+/* ─── EXPORTS / ACTIONS ──────────────────────────────────── */
+
+$('export-csv').addEventListener('click', () => {
+  const rows = [['Scheme Code', 'Scheme Name', 'AMC', 'NAV (₹)', 'NAV Date', 'Units', 'Value (₹)']];
+  let total = 0;
+  for (const h of holdings) {
+    const f = fundIndex.get(h.code);
+    if (!f) continue;
+    const v = f.nav * h.units;
+    total += v;
+    rows.push([
+      f.code,
+      `"${f.name.replace(/"/g, '""')}"`,
+      `"${(f.amc || '').replace(/"/g, '""')}"`,
+      f.nav.toFixed(4),
+      f.date,
+      h.units || 0,
+      v.toFixed(2),
+    ]);
+  }
+  rows.push(['', '', '', '', '', 'TOTAL', total.toFixed(2)]);
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const today = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `nav-ledger-${today}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+$('print-folio').addEventListener('click', () => window.print());
+
+$('clear-all').addEventListener('click', () => {
+  if (!holdings.length) return;
+  if (confirm(`Clear all ${holdings.length} holdings? This cannot be undone.`)) {
+    holdings = [];
+    saveHoldings();
     renderHoldings();
   }
+});
 
-  // ─── AUTOCOMPLETE ───
-  let acIndex = -1;
-  const searchInput = document.getElementById('search-input');
-  const acList = document.getElementById('autocomplete-list');
+/* ─── INIT ───────────────────────────────────────────────── */
 
-  searchInput.addEventListener('input', () => {
-    const q = searchInput.value.trim().toLowerCase();
-    if (q.length < 2) { acList.className = ''; acList.innerHTML = ''; return; }
-    const matches = allFunds.filter(f =>
-      f.name.toLowerCase().includes(q) || f.code.includes(q)
-    ).slice(0, 60);
-    if (!matches.length) { acList.className = ''; acList.innerHTML = ''; return; }
-    acIndex = -1;
-    const shown = matches.slice(0, 20);
-    acList.innerHTML = shown.map((f, i) =>
-      `<div class="ac-item" data-idx="${i}">
-        ${escHtml(f.name)}
-        <span class="nav-badge">₹ ${fmt(f.nav)}</span>
-        <span class="scheme-code">${f.code} · ${f.date}</span>
-      </div>`
-    ).join('') + (matches.length > 20
-      ? `<div class="ac-count">+ ${matches.length - 20} more — refine search</div>`
-      : '');
+(function init() {
+  // Today's date in masthead
+  $('todays-date').textContent = new Date().toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  }).toUpperCase();
 
-    acList._matches = shown;
-    acList.className = 'open';
-  });
-
-  acList.addEventListener('click', e => {
-    const item = e.target.closest('.ac-item');
-    if (!item) return;
-    const idx = parseInt(item.dataset.idx);
-    addFund(acList._matches[idx]);
-  });
-
-  searchInput.addEventListener('keydown', e => {
-    const items = acList.querySelectorAll('.ac-item');
-    if (e.key === 'ArrowDown') { e.preventDefault(); acIndex = Math.min(acIndex + 1, items.length - 1); highlight(items); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); acIndex = Math.max(acIndex - 1, 0); highlight(items); }
-    else if (e.key === 'Enter' && acIndex >= 0 && acList._matches) { e.preventDefault(); addFund(acList._matches[acIndex]); }
-    else if (e.key === 'Escape') { acList.className = ''; }
-  });
-
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.search-wrap')) acList.className = '';
-  });
-
-  function highlight(items) {
-    items.forEach((el, i) => el.classList.toggle('active', i === acIndex));
-    if (acIndex >= 0) items[acIndex]?.scrollIntoView({ block: 'nearest' });
-  }
-
-  // ─── ADD FUND ───
-  function addFund(fund) {
-    if (holdings.find(h => h.code === fund.code)) {
-      // highlight existing row
-      const row = document.querySelector(`tr[data-code="${fund.code}"]`);
-      if (row) { row.style.background = '#fde8e3'; setTimeout(() => row.style.background = '', 800); }
-    } else {
-      holdings.push({ ...fund, units: '' });
-      renderHoldings();
-    }
-    searchInput.value = '';
-    acList.className = '';
-    acList.innerHTML = '';
-    // focus units of last row
-    setTimeout(() => {
-      const inputs = document.querySelectorAll('.units-input');
-      if (inputs.length) inputs[inputs.length - 1].focus();
-    }, 50);
-  }
-
-  // ─── RENDER ───
-  function renderHoldings() {
-    const tbody = document.getElementById('holdings-body');
-    const table = document.getElementById('holdings-table');
-    const empty = document.getElementById('empty-state');
-    const summary = document.getElementById('summary-strip');
-
-    if (holdings.length === 0) {
-      table.classList.remove('visible');
-      empty.style.display = '';
-      summary.style.display = 'none';
-      return;
-    }
-    empty.style.display = 'none';
-    table.classList.add('visible');
-    summary.style.display = '';
-
-    tbody.innerHTML = holdings.map((h, i) => {
-      const units = parseFloat(h.units) || 0;
-      const val = units * h.nav;
-      return `
-      <tr data-code="${h.code}" data-i="${i}">
-        <td class="fund-name-cell">
-          ${escHtml(h.name)}
-          <span class="scheme-code">${h.code}</span>
-        </td>
-        <td style="text-align:right" class="nav-val">₹ ${fmt(h.nav)}</td>
-        <td style="text-align:right;color:var(--muted);font-size:0.72rem">${h.date}</td>
-        <td style="text-align:right">
-          <input type="number" class="units-input" min="0" step="0.001"
-            value="${h.units}" placeholder="0.000"
-            data-i="${i}" />
-        </td>
-        <td style="text-align:right" class="value-val ${val === 0 ? 'zero' : ''}">
-          ₹ ${fmtVal(val)}
-        </td>
-        <td>
-          <button class="remove-btn" data-i="${i}" title="Remove">✕</button>
-        </td>
-      </tr>`;
-    }).join('');
-
-    updateSummary();
-
-    // events
-    tbody.querySelectorAll('.units-input').forEach(inp => {
-      inp.addEventListener('input', () => {
-        const i = parseInt(inp.dataset.i);
-        holdings[i].units = inp.value;
-        updateRow(i);
-        updateSummary();
-      });
-    });
-    tbody.querySelectorAll('.remove-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const i = parseInt(btn.dataset.i);
-        holdings.splice(i, 1);
-        renderHoldings();
-      });
-    });
-  }
-
-  function updateRow(i) {
-    const h = holdings[i];
-    const units = parseFloat(h.units) || 0;
-    const val = units * h.nav;
-    const td = document.querySelector(`tr[data-i="${i}"] .value-val`);
-    if (td) {
-      td.textContent = `₹ ${fmtVal(val)}`;
-      td.className = `value-val ${val === 0 ? 'zero' : ''}`;
-    }
-  }
-
-  function updateSummary() {
-    const total = holdings.reduce((s, h) => s + (parseFloat(h.units) || 0) * h.nav, 0);
-    const active = holdings.filter(h => parseFloat(h.units) > 0).length;
-    document.getElementById('s-funds').textContent = holdings.length;
-    document.getElementById('s-active').textContent = active;
-    document.getElementById('s-total').textContent = fmtCrore(total);
-    const dates = [...new Set(holdings.map(h => h.date))];
-    document.getElementById('s-nav-note').textContent = dates.length ? `NAV dated ${dates.join(', ')}` : '';
-  }
-
-  document.getElementById('clear-all-btn').addEventListener('click', () => {
-    if (holdings.length && confirm('Clear all holdings?')) { holdings = []; renderHoldings(); }
-  });
-
-  function escHtml(s) {
-    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
-  // ─── BOOT ───
   loadData();
+})();
 </script>
 </body>
 </html>
